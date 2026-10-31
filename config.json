@@ -1,7 +1,7 @@
 {
   "orderEmail": "botvinkoroman447@gmail.com",
   "smtpHost": "smtp.gmail.com",
-  "smtpPort": 465,
+  "smtpPort": 587,
   "smtpUser": "botvinkoroman447@gmail.com",
   "smtpPass": "ztfr ocnv rptm tkuw",
   "adminUsername": "admin555",
