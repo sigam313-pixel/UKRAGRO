@@ -27,7 +27,19 @@ https://formspree.io/f/xnppgdyg}catch(e){console.error('Пошта вимкне�
 console.log(TR?'Пошта: замовлення надходитимуть на '+OWNER:'Пошта НЕ налаштована: впишіть smtpPass у config.json');
 const mail=(to,subject,text,replyTo,fromName)=>TR?TR.sendMail({from:fromName?`"${String(fromName).replace(/[\r\n"<>]+/g,' ').trim().slice(0,60)}" <${CFG.smtpUser}>`:`UKRAGRO <${CFG.smtpUser}>`,to,subject:String(subject).replace(/[\r\n]+/g,' '),text,replyTo}).catch(e=>console.error('Email error:',e.message)):0;
 const otext=o=>[`Замовлення №${o.id}`,`Клієнт: ${o.name}`,`Телефон: ${o.phone}`,`Email: ${o.email}`,`Доставка: ${o.delivery}, ${o.city}, ${o.address}`,`Оплата: ${o.pay=='card'?'карткою онлайн':'при отриманні'}`,'',...o.items.map(i=>`• ${i.n} × ${i.q} = ${i.p*i.q} ₴`),'',o.disc?`Знижка: −${o.disc} ₴`:'',`Доставка: ${o.dl} ₴`,`РАЗОМ: ${o.total} ₴`].join('\n');
-const notify=o=>{mail(OWNER,`Нове замовлення №${o.id} від ${o.name} (${o.email}) на ${o.total} ₴`,otext(o),o.email,o.name);mail(o.email,`Ваше замовлення №${o.id} | UKRAGRO`,`Дякуємо за замовлення!\n\n${otext(o)}\n\nМи зв’яжемося з вами найближчим часом.`)};
+const notify = o => {
+  fetch('https://formspree.io/f/ВАШ_ID', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      subject: `Нове замовлення №${o.id} від ${o.name} (${o.email}) на ${o.total} ₴`,
+      message: otext(o),
+      email: o.email,
+      name: o.name
+    })
+  }).catch(e => console.error('Formspree error:', e.message));
+};
+db.reviews=db.reviews||[];db.messages=db.messages||[];
 db.reviews=db.reviews||[];db.messages=db.messages||[];
 for(const s of SEED.PRODUCTS)if(!db.products.some(x=>x.id==s.id))db.products.push({...s});
 if(CFG.adminUsername&&CFG.adminPassword){let a=db.users.find(x=>x.username==CFG.adminUsername);if(!a)db.users.push(a={id:crypto.randomUUID(),name:CFG.adminUsername,username:CFG.adminUsername,email:CFG.adminUsername+'@ukragro.local',pw:'',admin:true});if(!a.pw||!same(CFG.adminPassword,a.pw))a.pw=hash(CFG.adminPassword);a.admin=true}
