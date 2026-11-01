@@ -28,7 +28,7 @@ console.log(TR?'Пошта: замовлення надходитимуть на
 const mail=(to,subject,text,replyTo,fromName)=>TR?TR.sendMail({from:fromName?`"${String(fromName).replace(/[\r\n"<>]+/g,' ').trim().slice(0,60)}" <${CFG.smtpUser}>`:`UKRAGRO <${CFG.smtpUser}>`,to,subject:String(subject).replace(/[\r\n]+/g,' '),text,replyTo}).catch(e=>console.error('Email error:',e.message)):0;
 const otext=o=>[`Замовлення №${o.id}`,`Клієнт: ${o.name}`,`Телефон: ${o.phone}`,`Email: ${o.email}`,`Доставка: ${o.delivery}, ${o.city}, ${o.address}`,`Оплата: ${o.pay=='card'?'карткою онлайн':'при отриманні'}`,'',...o.items.map(i=>`• ${i.n} × ${i.q} = ${i.p*i.q} ₴`),'',o.disc?`Знижка: −${o.disc} ₴`:'',`Доставка: ${o.dl} ₴`,`РАЗОМ: ${o.total} ₴`].join('\n');
 const notify = o => {
-  fetch('https://formspree.io/f/ВАШ_ID', {
+  fetch('https://formspree.io/f/xnppgdyg', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify({
