@@ -69,8 +69,10 @@ cv.addEventListener('pointermove',e=>{if(drag){vy=(e.clientX-lx)*.012;ry+=vy;lx=
 const up=()=>{drag=false;cv.style.cursor='grab'};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 const rs=()=>{R.setSize(box.clientWidth,box.clientHeight,false);C.aspect=box.clientWidth/box.clientHeight;C.updateProjectionMatrix()};new ResizeObserver(rs).observe(box);
 const loop=()=>{if(!on)return;if(!drag){vy*=.94;ry+=vy+(RM?0:.006)}G.rotation.y=ry;G.rotation.x=.08+Math.sin(performance.now()/1800)*.04;R.render(S,C);requestAnimationFrame(loop)};
-return{get on(){return on},set(v){on=v;cv.hidden=!v;box.querySelectorAll('svg,img').forEach(e=>e.style.display=v?'none':'');if(v){rs();loop()}}}}
-function prod(){const box=$$q('.art.big'),p=box&&pid(new URLSearchParams(location.search).get('id'));if(!p)return;const g=gen(p);
-const b=document.createElement('button');b.type='button';b.className='b3d';b.setAttribute('aria-label','Перемкнути 3D-модель');box.append(b);let v=null;
-const sw=n=>{if(!v)v=viewer(box,p);v.set(n);b.textContent=n?(g?'2D':'Фото'):'3D'};b.onclick=()=>sw(!(v&&v.on));b.textContent='3D';if(g)sw(true)}
-if(ok){const h=$$q('.hero');if(h)hero(h);scan();new MutationObserver(()=>requestAnimationFrame(scan)).observe(document.getElementById('app'),{childList:true,subtree:true});if(document.body.dataset.page=='product')prod()}
+return{get on(){return on},set(v){const was=on;on=v;cv.style.display=v?'block':'none';box.querySelectorAll('svg,img').forEach(e=>e.style.display=v?'none':'');if(v&&!was){rs();loop()}}}}
+function prod(){const box=$$q('.art.big'),p=box&&pid(new URLSearchParams(location.search).get('id'));if(!p)return;const g=gen(p);box.classList.remove('pre3d');
+const w=document.createElement('div');w.className='b3d';w.setAttribute('role','group');w.setAttribute('aria-label','Вигляд товару');let v=null;
+const mk=(t,n)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>sw(n);w.append(b);return b},b3=mk('3D',true),b2=mk(g?'2D':'Фото',false);
+const sw=n=>{if(n&&!v)v=viewer(box,p);if(v)v.set(n);b3.classList.toggle('on',n);b2.classList.toggle('on',!n);b3.setAttribute('aria-pressed',n);b2.setAttribute('aria-pressed',!n)};
+box.append(w);sw(!!g)}
+if(ok){window.thumb3=render3;const h=$$q('.hero');if(h)hero(h);scan();new MutationObserver(()=>requestAnimationFrame(scan)).observe(document.getElementById('app'),{childList:true,subtree:true});if(document.body.dataset.page=='product')prod()}else{const b=$$q('.art.big');if(b)b.classList.remove('pre3d')}
