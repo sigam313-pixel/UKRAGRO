@@ -22,7 +22,7 @@ const sign=d=>crypto.createHash('sha1').update(LQ.prv+d+LQ.prv).digest('base64')
 const pub=p=>({id:p.id,n:p.n,b:p.b,c:p.c,p:p.p,o:p.o,k:p.k,s:p.s,col:p.col,img:p.img});
 const str=(v,n=200)=>typeof v=='string'?v.trim().slice(0,n):'';
 let CFG={};try{CFG=JSON.parse(fs.readFileSync(path.join(ROOT,'config.json'),'utf8'))}catch(e){console.error('УВАГА: config.json не прочитано:',e.message)}
-CFG.adminUsername=CFG.adminUsername||'Phantom';CFG.adminPassword=CFG.adminPassword||'antro';const OWNER=CFG.orderEmail||'botvinkoroman447@gmail.com';let TR=null;
+CFG.adminUsername=CFG.adminUsername||'admin555';CFG.adminPassword=CFG.adminPassword||'cursed555';const OWNER=CFG.orderEmail||'botvinkoroman447@gmail.com';let TR=null;
 https://formspree.io/f/xnppgdyg}catch(e){console.error('Пошта вимкнена:',e.message)}
 console.log(TR?'Пошта: замовлення надходитимуть на '+OWNER:'Пошта НЕ налаштована: впишіть smtpPass у config.json');
 const mail=(to,subject,text,replyTo,fromName)=>TR?TR.sendMail({from:fromName?`"${String(fromName).replace(/[\r\n"<>]+/g,' ').trim().slice(0,60)}" <${CFG.smtpUser}>`:`UKRAGRO <${CFG.smtpUser}>`,to,subject:String(subject).replace(/[\r\n]+/g,' '),text,replyTo}).catch(e=>console.error('Email error:',e.message)):0;
