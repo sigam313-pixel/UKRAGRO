@@ -47,3 +47,44 @@ const a=$('#acc');a.setAttribute('href','account.html');a.onclick=null;a.setAttr
 $('.nav').insertAdjacentHTML('beforeend','<a href="contact.html">Контакти</a>');$('.fg>div:nth-child(3)').insertAdjacentHTML('beforeend','<a href="contact.html">Контакти</a>');if(ME&&ME.admin)$('.nav').insertAdjacentHTML('beforeend','<a href="admin.html">Керування</a>');
 $('#nl').onsubmit=async e=>{e.preventDefault();const m=$('#nm');try{await api('/api/subscribe',{method:'POST',body:{email:$('#nl input').value}});m.textContent='Дякуємо, ви підписані.';e.target.reset()}catch(x){m.textContent=x.message}};
 ({account,admin,contact,creators,product:reviews,checkout:co2})[page]?.()})();
+/* ---- conversion layer: keeps visitors engaged and moves them toward checkout ---- */
+(()=>{
+const FD=5000,RM2=matchMedia('(prefers-reduced-motion:reduce)').matches,SKIP=['cart','checkout','account','admin','contact','creators'];
+const gs=(s,k)=>{try{return s.getItem(k)}catch(e){return null}},ss=(s,k,v)=>{try{s.setItem(k,v)}catch(e){}};
+const fdBar=s=>s?`<div class="fdb"><p>${s>=FD?'<b>Доставка безкоштовна</b>':`Додайте ще <b>${money(FD-s)}</b> до безкоштовної доставки`}</p><i><u style="width:${Math.min(100,s/FD*100)}%"></u></i></div>`:'';
+const TRUST='<ul class="trust"><li>Доставка по Україні, 1–4 дні</li><li>Оплата при отриманні або карткою</li><li>Консультація агронома: +380 44 000 00 00</li></ul>';
+const RV=()=>{try{return JSON.parse(gs(localStorage,'ua_rv'))||[]}catch(e){return[]}};
+const rvHtml=ex=>{const l=RV().filter(i=>i!=ex).map(pid).filter(Boolean).slice(0,4);return l.length?`<h2 class="sub">Ви нещодавно переглядали</h2><div class="grid">${l.map(card).join('')}</div>`:''};
+const ci=()=>`<div class="ci">${rows().map(x=>`<div><span class="art sm">${art(x)}</span><b>${esc(x.n)}</b><small>${x.q} × ${money(x.p)}</small></div>`).join('')}</div>`;
+if(page=='product'){const p=pid(new URLSearchParams(location.search).get('id')),a=$('.art.big');if(p&&a&&/\.svg(\?|$)/.test(p.img||''))a.classList.add('pre3d')}
+/* mini-cart after adding */
+const mini=()=>{let m=$('#mc');if(!m){m=document.createElement('aside');m.id='mc';m.setAttribute('aria-label','Кошик');document.body.append(m);m.onclick=e=>{if(e.target===m||e.target.closest('[data-mx]'))m.classList.remove('open')}}
+const r=rows(),[sub,dl]=totals();if(!r.length)return;
+m.innerHTML=`<div class="mp"><div class="mh"><strong>Товар додано до кошика</strong><button data-mx aria-label="Закрити">${I.x}</button></div>${fdBar(sub)}<div class="ml">${r.map(x=>`<div class="mi"><span class="art sm">${art(x)}</span><div><b>${esc(x.n)}</b><small>${x.q} × ${money(x.p)}</small></div></div>`).join('')}</div><div class="mf"><p><span>Разом</span><b>${money(sub+dl)}</b></p><a class="btn p full" href="checkout.html">Оформити замовлення ${I.arrow}</a><button class="btn o2 full" data-mx>Продовжити покупки</button></div></div>`;
+requestAnimationFrame(()=>m.classList.add('open'))};
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b&&!b.disabled&&!['cart','checkout'].includes(page))setTimeout(mini,RM2?0:800)});
+/* sticky add-to-cart on product page */
+const sticky=p=>{const b=$('.buy');if($('#sb2')||!b)return;const s=document.createElement('div');s.id='sb2';s.innerHTML=`<span><b>${esc(p.n)}</b><i>${money(p.p)}</i></span><button class="btn p" data-a="${p.id}" ${p.s?'':'disabled'}>До кошика</button>`;document.body.append(s);new IntersectionObserver(([e])=>s.classList.toggle('show',!e.isIntersecting&&e.boundingClientRect.top<0)).observe(b)};
+/* page-specific extras, re-applied whenever the page re-renders */
+const run=()=>{
+if(page=='cart'){const s=$('.sum');if(s&&!$('.fdb',s))s.insertAdjacentHTML('afterbegin',fdBar(totals()[0]))}
+if(page=='checkout'){const s=$('.sum');if(s&&!$('.ci',s)){s.querySelector('h3').insertAdjacentHTML('afterend',ci()+fdBar(totals()[0]));s.insertAdjacentHTML('beforeend',TRUST)}
+const pc=$('#pc');if(pc&&!pc.dataset.pf){pc.dataset.pf=1;const pm=gs(localStorage,'ua_promo');if(pm&&!pc.value)pc.value=pm}}
+if(page=='product'){const b=$('.buy'),p=pid(new URLSearchParams(location.search).get('id'));if(b&&p&&!$('.trust')){b.insertAdjacentHTML('afterend',TRUST);sticky(p);const h=rvHtml(p.id);if(h)$('.pg').insertAdjacentHTML('beforeend','<section id="rvw">'+h+'</section>');ss(localStorage,'ua_rv',JSON.stringify([p.id,...RV().filter(x=>x!=p.id)].slice(0,8)))}}
+if(page=='home'&&!$('#rvw')){const a=$('.sec.alt'),h=rvHtml(0);if(a&&h)a.insertAdjacentHTML('afterend','<section class="sec wrap" id="rvw">'+h+'</section>')}};
+new MutationObserver(run).observe(app,{childList:true,subtree:true});run();
+/* floating cart pill */
+const pill=()=>{let p=$('#pill');const n=cart.reduce((a,c)=>a+c.q,0);if(SKIP.includes(page)||!n){if(p)p.remove();return}if(!p){p=document.createElement('a');p.id='pill';p.href='cart.html';document.body.append(p)}p.innerHTML=`${I.bag}<span>${n} · ${money(totals()[0])}</span><b>Оформити ${I.arrow}</b>`};
+if($('#cc'))new MutationObserver(pill).observe($('#cc'),{childList:true,characterData:true,subtree:true});pill();
+/* welcome offer: once per session, on exit intent or after a while */
+const offer=()=>{if(SKIP.includes(page)||gs(localStorage,'ua_promo')||gs(sessionStorage,'ua_off')||$('#of'))return;ss(sessionStorage,'ua_off',1);
+const o=document.createElement('div');o.id='of';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Знижка');
+o.innerHTML=`<div class="op"><button class="ox" aria-label="Закрити">${I.x}</button><small>Вітаємо в UKRAGRO</small><h3>−10% на ваше замовлення</h3><p>Скористайтеся промокодом <b>AGRO10</b>. Ми застосуємо його автоматично при оформленні.</p><button class="btn p full" id="og">Отримати знижку ${I.arrow}</button><button class="no">Ні, дякую</button></div>`;
+document.body.append(o);requestAnimationFrame(()=>o.classList.add('open'));const x=()=>{o.classList.remove('open');setTimeout(()=>o.remove(),400)};
+o.onclick=e=>{if(e.target.closest('#og')){ss(localStorage,'ua_promo','AGRO10');toast('Промокод AGRO10 збережено');x()}else if(e.target===o||e.target.closest('.ox,.no'))x()}};
+const t0=Date.now();document.documentElement.addEventListener('mouseleave',e=>{if(e.clientY<=0&&Date.now()-t0>6000)offer()});setTimeout(offer,25000);
+document.addEventListener('keydown',e=>{if(e.key=='Escape'){const m=$('#mc');if(m)m.classList.remove('open');const c=$('#of .ox');if(c)c.click()}});
+/* rotating announcement + tab-title reminder */
+const bar=$('.bar span');if(bar&&!RM2){const m=[bar.textContent,'Промокод AGRO10: −10% на замовлення','Консультація агронома: +380 44 000 00 00'];let i=0;setInterval(()=>{bar.classList.add('fo');setTimeout(()=>{i=(i+1)%m.length;bar.textContent=m[i];bar.classList.remove('fo')},300)},5000)}
+const T0=document.title;document.addEventListener('visibilitychange',()=>{document.title=document.hidden&&cart.length&&page!='checkout'?'У кошику на вас чекають товари | UKRAGRO':T0});
+})();
