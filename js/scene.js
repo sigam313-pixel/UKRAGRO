@@ -12,7 +12,7 @@ const g=cnv(2,256),x=g.getContext('2d'),gr=x.createLinearGradient(0,0,0,256);[[0
 S.background=tex(g);S.fog=new T.FogExp2(0xf6d28a,.045);
 S.add(new T.HemisphereLight(0xffe2b0,0x6b5324,1.4));const sun=new T.DirectionalLight(0xffc27a,2.6);sun.position.set(-6,3,-14);S.add(sun);
 const ground=new T.Mesh(new T.PlaneGeometry(80,90),new T.MeshStandardMaterial({color:0x8a6a2e,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.z=-30;S.add(ground);
-const mk=()=>{const m=new T.MeshStandardMaterial({roughness:.8,flatShading:true});m.onBeforeCompile=s=>{s.uniforms.uTime=U.uTime;s.vertexShader=s.vertexShader.replace('#include <common>','#include <common>\nuniform float uTime;').replace('#include <begin_vertex>','vec3 transformed=vec3(position);float ph=instanceMatrix[3].x*.6+instanceMatrix[3].z*.45;float hh=position.y;transformed.x+=sin(uTime*1.7+ph)*.1*hh*hh;transformed.z+=cos(uTime*1.3+ph*1.4)*.05*hh*hh;')};return m};
+const mk=()=>{const m=new T.MeshStandardMaterial({roughness:.8,flatShading:true});m.onBeforeCompile=s=>{s.uniforms.uTime=U.uTime;s.vertexShader=s.vertexShader.replace('#include <common>','#include <common>\nuniform float uTime;').replace('#include <begin_vertex>','vec3 transformed=vec3(position);float ph=instanceMatrix[3].x*.6+instanceMatrix[3].z*.45;float hh=position.y;float gust=.55+.45*sin(uTime*.45-instanceMatrix[3].z*.18+instanceMatrix[3].x*.06);transformed.x+=(sin(uTime*1.7+ph)*.07+sin(uTime*.9-instanceMatrix[3].z*.35)*.12*gust)*hh*hh;transformed.z+=cos(uTime*1.3+ph*1.4)*.05*hh*hh*gust;')};return m};
 const N=MOB?2800:7000,sg=new T.CylinderGeometry(.012,.022,1,3,1).translate(0,.5,0),eg=new T.SphereGeometry(.055,5,4).scale(1,3.2,1).translate(0,1.03,0);
 const stem=new T.InstancedMesh(sg,mk(),N),ear=new T.InstancedMesh(eg,mk(),N),d=new T.Object3D(),col=new T.Color();
 for(let i=0;i<N;i++){const s=.9+Math.random()*.55;d.position.set((Math.random()-.5)*28,0,3-Math.random()*37);d.rotation.set((Math.random()-.5)*.15,Math.random()*6.28,(Math.random()-.5)*.15);d.scale.setScalar(s);d.updateMatrix();stem.setMatrixAt(i,d.matrix);ear.setMatrixAt(i,d.matrix);stem.setColorAt(i,col.setHSL(.14,.4,.34+Math.random()*.12));ear.setColorAt(i,col.setHSL(.105+Math.random()*.03,.6+Math.random()*.2,.46+Math.random()*.14))}
@@ -21,15 +21,36 @@ const gc=cnv(128,128),gx=gc.getContext('2d'),rg=gx.createRadialGradient(64,64,0,
 const glow=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(gc),blending:T.AdditiveBlending,depthWrite:false,transparent:true,fog:false}));glow.position.set(5,4.6,-70);glow.scale.setScalar(34);S.add(glow);
 const P=MOB?90:220,pa=new Float32Array(P*3);for(let i=0;i<P;i++){pa[i*3]=(Math.random()-.5)*16;pa[i*3+1]=Math.random()*4;pa[i*3+2]=3-Math.random()*22}
 const pg=new T.BufferGeometry();pg.setAttribute('position',new T.BufferAttribute(pa,3));S.add(new T.Points(pg,new T.PointsMaterial({color:0xfff0b0,size:.06,transparent:true,opacity:.8,blending:T.AdditiveBlending,depthWrite:false})));
+/* god rays, drifting clouds, wildflowers, hoverable floating products */
+const rcv=cnv(256,256),rx=rcv.getContext('2d');rx.translate(128,128);for(let i=0;i<18;i++){rx.rotate(Math.PI/9);const g=rx.createLinearGradient(0,0,128,0);g.addColorStop(0,'rgba(255,236,180,.55)');g.addColorStop(1,'rgba(255,236,180,0)');rx.fillStyle=g;rx.beginPath();rx.moveTo(0,0);rx.lineTo(128,-5-(i%3)*3);rx.lineTo(128,5+(i%3)*3);rx.fill()}
+const rays=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(rcv),blending:T.AdditiveBlending,depthWrite:false,transparent:true,fog:false,opacity:.4}));rays.position.copy(glow.position);rays.scale.setScalar(130);S.add(rays);
+const ccv=cnv(256,128),cx2=ccv.getContext('2d');for(let i=0;i<9;i++){const x=40+Math.random()*176,y=48+Math.random()*32,r=22+Math.random()*26,g=cx2.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(255,240,215,.55)');g.addColorStop(1,'rgba(255,240,215,0)');cx2.fillStyle=g;cx2.fillRect(0,0,256,128)}
+const cmat=new T.SpriteMaterial({map:new T.CanvasTexture(ccv),transparent:true,depthWrite:false,fog:false,opacity:.8}),CL=[];
+for(let i=0;i<7;i++){const s=new T.Sprite(cmat);s.position.set(-70+i*24+Math.random()*10,12+Math.random()*14,-60-Math.random()*20);s.scale.set(46,23,1);CL.push(s);S.add(s)}
+const FN=MOB?60:170,fst=new T.InstancedMesh(new T.CylinderGeometry(.01,.016,1,3,1).translate(0,.5,0),mk(),FN),fbl=new T.InstancedMesh(new T.IcosahedronGeometry(.075,0).translate(0,1.02,0),mk(),FN),fcs=[0xd9432f,0x5b7fe0,0xf6f0d8,0xe8a33d];
+for(let i=0;i<FN;i++){const s=.85+Math.random()*.5;d.position.set((Math.random()-.5)*20,0,3-Math.random()*26);d.rotation.set(0,Math.random()*6.28,0);d.scale.setScalar(s);d.updateMatrix();fst.setMatrixAt(i,d.matrix);fbl.setMatrixAt(i,d.matrix);fst.setColorAt(i,col.setHex(0x4f8a3a));fbl.setColorAt(i,col.setHex(fcs[i%4]))}
+S.add(fst,fbl);
+const S2=new T.Scene();S2.add(C);S2.add(new T.HemisphereLight(0xffe2b0,0x6b5324,1.7));const dl2=new T.DirectionalLight(0xffd9a0,2.6);dl2.position.set(-3,4,3);S2.add(dl2);const draw2=()=>{C.updateMatrixWorld(true);R.autoClear=true;R.render(S,C);R.autoClear=false;R.clearDepth();R.render(S2,C);R.autoClear=true};const FL=[];[['seeds',.55,.3,6.2,.46],['protection',.84,.12,7,.4],['tools',.8,.66,6.4,.38]].forEach(([c,nx,ny,dd,s],i)=>{const p=PRODUCTS.find(q=>q.c==c);if(!p)return;const m=model(p);m.scale.setScalar(s);m.rotation.set(.12,-.5+i,0);m.userData={id:p.id,n:p.n,nx,ny,d:dd,s,i};C.add(m);FL.push(m)});
+const place=()=>FL.forEach(m=>{const u=m.userData,hh=u.d*Math.tan(24*Math.PI/180),nr=C.aspect<1;m.visible=!nr||u.i==0;u.bx=(nr?.45:u.nx)*hh*C.aspect;u.by=(nr?.5:u.ny)*hh;u.bz=-u.d;m.position.set(u.bx,u.by,u.bz)});
+const hint=document.createElement('div');hint.className='hint';h.append(hint);
+const rcast=new T.Raycaster(),pv=new T.Vector2();let hot=null,px=-1,py=-1;
+addEventListener('pointermove',e=>{px=e.clientX;py=e.clientY},{passive:true});
+const floatTick=t=>{rays.material.rotation=t*.02;glow.scale.setScalar(34+Math.sin(t*.6)*1.6);CL.forEach(s=>{s.position.x+=.012;if(s.position.x>85)s.position.x=-85});
+const r=h.getBoundingClientRect();let hit=null;
+if(px>=r.left&&px<=r.right&&py>=r.top&&py<=r.bottom){pv.set((px-r.left)/r.width*2-1,-((py-r.top)/r.height)*2+1);rcast.setFromCamera(pv,C);const hs=rcast.intersectObjects(FL.filter(m=>m.visible),true);if(hs.length){let o=hs[0].object;while(o&&!o.userData.id)o=o.parent;const el=document.elementFromPoint(px,py);if(o&&!(el&&el.closest('a,button,.season')))hit=o}}
+if(hit!==hot){hot=hit;h.style.cursor=hot?'pointer':'';hint.textContent=hot?hot.userData.n:'';hint.classList.toggle('on',!!hot)}
+if(hot)hint.style.transform=`translate(${px-r.left+18}px,${py-r.top+18}px)`;
+FL.forEach(m=>{const u=m.userData,k=m===hot?1.16:1;m.scale.x+=(u.s*k-m.scale.x)*.12;m.scale.y=m.scale.z=m.scale.x;m.position.set(u.bx,u.by+Math.sin(t*.9+u.i*2)*.14,u.bz);m.rotation.y+=m===hot?.03:.006;m.rotation.x=.1+Math.sin(t*.6+u.i)*.05})};
+h.addEventListener('click',e=>{if(hot&&!e.target.closest('a,button')){const a=document.createElement('a');a.href='product.html?id='+hot.userData.id;document.body.append(a);a.click();a.remove()}});
 let mx=0,my=0,vis=true;const t0=performance.now();
 addEventListener('pointermove',e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5},{passive:true});
-const rs=()=>{R.setSize(h.clientWidth,h.clientHeight,false);C.aspect=h.clientWidth/h.clientHeight;C.updateProjectionMatrix()};rs();addEventListener('resize',rs);
+const rs=()=>{R.setSize(h.clientWidth,h.clientHeight,false);C.aspect=h.clientWidth/h.clientHeight;C.updateProjectionMatrix();place()};rs();addEventListener('resize',rs);
 const frame=()=>{const t=(performance.now()-t0)/1000,sc=Math.min(1,scrollY/innerHeight);U.uTime.value=t;
 const p=pg.attributes.position;for(let i=0;i<P;i++){let y=p.getY(i)+.004;if(y>4)y=0;p.setY(i,y);p.setX(i,p.getX(i)+Math.sin(t+i)*.0015)}p.needsUpdate=true;
-C.position.x+=(mx*1.6-C.position.x)*.04;C.position.y+=(1.7-my*.5+sc*1.8-C.position.y)*.04;C.position.z=6-sc*5+Math.sin(t*.15)*.3;C.lookAt(C.position.x*.3,C.position.y-1.9,-30);R.render(S,C)};
+C.position.x+=(mx*1.6-C.position.x)*.04;C.position.y+=(1.7-my*.5+sc*1.8-C.position.y)*.04;const ie=1-Math.pow(1-Math.min(1,t/3),3);C.position.z=6-sc*5+Math.sin(t*.15)*.3+(1-ie)*4;C.fov=48+(1-ie)*12;C.updateProjectionMatrix();C.lookAt(C.position.x*.3,C.position.y-1.9,-30);floatTick(t);draw2()};
 const loop=()=>{if(!vis)return;frame();requestAnimationFrame(loop)};
 const ph=$$q('.ph',h);if(ph)ph.style.visibility='hidden';
-if(RM){U.uTime.value=3;C.position.set(0,1.7,6);C.lookAt(0,-.2,-30);R.render(S,C);return}
+if(RM){U.uTime.value=3;C.position.set(0,1.7,6);C.lookAt(0,-.2,-30);draw2();return}
 new IntersectionObserver(([e])=>{if(e.isIntersecting&&!vis){vis=true;loop()}else if(!e.isIntersecting)vis=false}).observe(h);loop()}
 /* ---------- products in 3D ---------- */
 const wrapT=(x,t,cx,y,w,lh)=>{let l='';for(const wd of t.split(' ')){const n=l?l+' '+wd:wd;if(x.measureText(n).width>w&&l){x.fillText(l,cx,y);y+=lh;l=wd}else l=n}x.fillText(l,cx,y)};
